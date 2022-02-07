@@ -3,6 +3,7 @@ package com.supportportal.supportportal.service.impl;
 import com.supportportal.supportportal.domain.User;
 import com.supportportal.supportportal.domain.UserPrincipal;
 import com.supportportal.supportportal.exception.domain.EmailExistException;
+import com.supportportal.supportportal.exception.domain.EmailNofFoundException;
 import com.supportportal.supportportal.exception.domain.UserNotFoundException;
 import com.supportportal.supportportal.exception.domain.UsernameExistException;
 import com.supportportal.supportportal.repository.UserRepository;
@@ -123,11 +124,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User findUserByUserName(String username) {
-        return null;
+        return userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_WITH_USERNAME + username));
     }
 
     @Override
     public User findUserByEmail(String email) {
-        return null;
+        return userRepository.findUserByEmail(email)
+                .orElseThrow(() -> new EmailNofFoundException("No email found: " + email));
     }
 }
