@@ -7,6 +7,7 @@ import com.supportportal.supportportal.exception.domain.EmailNofFoundException;
 import com.supportportal.supportportal.exception.domain.UserNotFoundException;
 import com.supportportal.supportportal.exception.domain.UsernameExistException;
 import com.supportportal.supportportal.repository.UserRepository;
+import com.supportportal.supportportal.service.LoginAttemptService;
 import com.supportportal.supportportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -39,11 +40,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRepository userRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final BCryptPasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(NO_USER_FOUND_WITH_USERNAME + username));
+
+        validateLoginAttempt(user);
 
         user.setLastLoginDateDisplay(user.getLastLoginDate());
         user.setLastLoginDate(new Date());
@@ -52,6 +56,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         LOGGER.info("Returning found user: " + username);
 
         return userPrincipal;
+    }
+
+    private void validateLoginAttempt(User user) {
+        if (user.isNotLocked()) {
+            user.setNotLocked(!loginAttemptService.hasExceededMaxAttempts(user.getUsername()));
+        } else {
+            loginAttemptService.evictUserFromLoginAttemptCache(user.getUsername());
+        }
     }
 
     @Override
