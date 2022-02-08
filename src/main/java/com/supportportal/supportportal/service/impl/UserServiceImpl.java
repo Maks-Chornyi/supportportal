@@ -8,6 +8,7 @@ import com.supportportal.supportportal.exception.domain.UserNotFoundException;
 import com.supportportal.supportportal.exception.domain.UsernameExistException;
 import com.supportportal.supportportal.repository.UserRepository;
 import com.supportportal.supportportal.service.LoginAttemptService;
+import com.supportportal.supportportal.service.EmailService;
 import com.supportportal.supportportal.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -41,6 +42,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final BCryptPasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
+    private final EmailService emailService;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -80,7 +82,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setAuthorities(ROLE_HR.getAuthorities());
         user.setProfileImgUrl(getTemporaryProfileImageUrl());
         userRepository.save(user);
-        LOGGER.info("New user password: " + password);
+        emailService.sendRegistrationEmail(user.getFirstName(), password, user.getEmail());
 
         return user;
     }
