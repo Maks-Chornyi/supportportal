@@ -2,7 +2,7 @@ jwt:
   secret: jkahdflkjhsgkljhsfklafkhldj
 
 server:
-  port: 8081
+  port: 8082
 #  error:
 #    whitelabel:
 #      enabled: false
